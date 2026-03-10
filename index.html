@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raja Mantri Chor Sipahi - Royal Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@400;600&display=swap');
+
+        :root {
+            --gold: #f1c40f;
+            --dark-gold: #d4af37;
+            --royal-red: #8e44ad;
+            --royal-dark: #2c3e50;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-size: cover;
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .logo-container {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .logo-container h1 {
+            font-size: 2.5rem;
+            margin: 10px 0 0 0;
+            letter-spacing: 2px;
+        }
+
+        .logo-emojis {
+            font-size: 3rem;
+            letter-spacing: 15px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        input {
+            padding: 12px;
+            width: 80%;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, var(--dark-gold), var(--gold));
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(241, 196, 15, 0.5);
+        }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; color: #666;}
+
+        .hidden { display: none !important; }
+
+        /* Game Board Styles */
+        .players-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .player-card {
+            border: 3px solid #ddd;
+            padding: 20px;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .player-card:hover { transform: scale(1.02); }
+        .player-card.is-me { border-color: var(--dark-gold); background: #fffdf5; }
+        .player-card.targetable { border: 3px dashed var(--royal-red); animation: pulse 1.5s infinite; }
+        
+        .role-text { 
+            font-weight: 800; 
+            font-size: 22px; 
+            margin-top: 10px; 
+            color: var(--royal-dark);
+            font-family: 'Cinzel', serif;
+        }
+
+        #instructionText {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--royal-red);
+            margin: 20px 0;
+            padding: 10px;
+            background: rgba(142, 68, 173, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Scoreboard Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 16px;
+            width: 90%; max-width: 500px; text-align: center;
+        }
+        .score-list { list-style: none; padding: 0; font-size: 1.2rem; text-align: left; }
+        .score-list li { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(142, 68, 173, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(142, 68, 173, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="logo-container">
+    <div class="logo-emojis">👑 🧑‍⚖️ 🦹‍♂️ 👮‍♂️</div>
+    <h1>Raja Mantri Chor Sipahi</h1>
+</div>
+
+<div class="container">
+    
+    <div id="setup-screen">
+        <h2>Enter Your Name</h2>
+        <input type="text" id="playerName" placeholder="Your Name" required>
+        <br>
+        <button id="createRoomBtn">Create New Game</button>
+        <br><br>
+        <p style="font-weight: bold; color: #666;">--- OR ---</p>
+        <input type="text" id="roomCodeInput" placeholder="Enter 4-Digit Room Code">
+        <br>
+        <button id="joinRoomBtn" style="background: #34495e; color: white;">Join Game</button>
+    </div>
+
+    <div id="lobby-screen" class="hidden">
+        <h2>Room Code: <span id="displayRoomCode" style="color: var(--royal-red); font-size: 2rem;"></span></h2>
+        <p>Waiting for players (Need 4 total)...</p>
+        <ul id="lobbyPlayerList" style="list-style: none; padding: 0; font-size: 1.2rem; font-weight: bold;"></ul>
+        
+        <div id="hostControls" class="hidden">
+            <button id="addBotsBtn" style="background: #27ae60;">Fill with Bots 🤖</button>
+            <button id="startGameBtn" disabled>Start Round</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="actionArea">
+            <button id="revealRajaBtn" class="hidden">👑 I am the Raja! Reveal me.</button>
+            <p id="instructionText">Distributing Chits...</p>
+        </div>
+
+        <div class="players-grid" id="playersGrid"></div>
+    </div>
+</div>
+
+<div id="scoreModal" class="modal hidden">
+    <div class="modal-content">
+        <h2 style="color: var(--dark-gold); font-family: 'Cinzel', serif;">Round Over!</h2>
+        <p id="roundResultText" style="font-weight: bold; color: var(--royal-red);"></p>
+        <ul id="scoreList" class="score-list"></ul>
+        
+        <div id="replayControls" class="hidden">
+            <button id="nextRoundBtn">Next Round (Keep Scores)</button>
+            <button id="resetGameBtn" style="background: #e74c3c;">Reset Game</button>
+        </div>
+        <p id="waitingHostText" class="hidden">Waiting for Host to start next round...</p>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Your Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDVaexSETiqwiqy1TAaVUMq5--_JaxwTRQ",
+        authDomain: "jp-residency-70cbf.firebaseapp.com",
+        databaseURL: "https://jp-residency-70cbf-default-rtdb.firebaseio.com",
+        projectId: "jp-residency-70cbf",
+        storageBucket: "jp-residency-70cbf.firebasestorage.app",
+        messagingSenderId: "1084521996397",
+        appId: "1:1084521996397:web:30076255d3c65944049f64"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Game State
+    let myName = "";
+    let myId = "player_" + Math.random().toString(36).substr(2, 9);
+    let currentRoomCode = "";
+    let isHost = false;
+    let roomRef = null;
+
+    // DOM Elements
+    const setupScreen = document.getElementById("setup-screen");
+    const lobbyScreen = document.getElementById("lobby-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const scoreModal = document.getElementById("scoreModal");
+    const instructionText = document.getElementById("instructionText");
+    const playersGrid = document.getElementById("playersGrid");
+    
+    // --- 1. Create Game ---
+    document.getElementById("createRoomBtn").addEventListener("click", () => {
+        myName = document.getElementById("playerName").value.trim();
+        if(!myName) return alert("Please enter your name!");
+        
+        currentRoomCode = Math.floor(1000 + Math.random() * 9000).toString();
+        isHost = true;
+        roomRef = ref(db, 'rooms/' + currentRoomCode);
+
+        set(roomRef, {
+            status: "waiting", // waiting, playing, round_over
+            turnState: "setup", // setup, raja_turn, sipahi_guessing
+            lastResult: "",
+            players: {
+                [myId]: { name: myName, role: "", score: 0, isBot: false, revealed: false }
+            }
+        });
+
+        enterLobby();
+        listenToRoom();
+    });
+
+    // --- 2. Join Game ---
+    document.getElementById("joinRoomBtn").addEventListener("click", async () => {
+        myName = document.getElementById("playerName").value.trim();
+        const code = document.getElementById("roomCodeInput").value.trim();
+        if(!myName || !code) return alert("Enter name and room code!");
+
+        currentRoomCode = code;
+        roomRef = ref(db, 'rooms/' + currentRoomCode);
+        
+        const snapshot = await get(roomRef);
+        if(snapshot.exists() && snapshot.val().status === "waiting") {
+            const players = snapshot.val().players;
+            if(Object.keys(players).length >= 4) return alert("Room is full!");
+            
+            await update(ref(db, 'rooms/' + currentRoomCode + '/players'), {
+                [myId]: { name: myName, role: "", score: 0, isBot: false, revealed: false }
+            });
+            enterLobby();
+            listenToRoom();
+        } else {
+            alert("Room not found or game already in progress!");
+        }
+    });
+
+    // --- 3. Add Bots (Host) ---
+    document.getElementById("addBotsBtn").addEventListener("click", async () => {
+        const snapshot = await get(roomRef);
+        const players = snapshot.val().players;
+        const botsNeeded = 4 - Object.keys(players).length;
+
+        let updates = {};
+        for(let i=0; i<botsNeeded; i++){
+            let botId = "bot_" + Math.random().toString(36).substr(2, 9);
+            updates[botId] = { name: "Robot 🤖", role: "", score: 0, isBot: true, revealed: false };
+        }
+        await update(ref(db, 'rooms/' + currentRoomCode + '/players'), updates);
+    });
+
+    // --- 4. Start Game / Distribute Roles (Host) ---
+    document.getElementById("startGameBtn").addEventListener("click", () => startRound(false));
+    document.getElementById("nextRoundBtn").addEventListener("click", () => startRound(false));
+    document.getElementById("resetGameBtn").addEventListener("click", () => startRound(true));
+
+    async function startRound(resetScores) {
+        const snapshot = await get(roomRef);
+        const players = snapshot.val().players;
+        let playerIds = Object.keys(players);
+        
+        let roles = ["Raja", "Mantri", "Sipahi", "Chor"].sort(() => Math.random() - 0.5);
+
+        let updates = { status: "playing", turnState: "raja_turn", lastResult: "" };
+        playerIds.forEach((id, index) => {
+            updates[`players/${id}/role`] = roles[index];
+            updates[`players/${id}/revealed`] = false;
+            if(resetScores) updates[`players/${id}/score`] = 0;
+        });
+
+        await update(roomRef, updates);
+    }
+
+    // --- Core Listener ---
+    function listenToRoom() {
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if(!data) return;
+
+            const players = data.players;
+            const playerIds = Object.keys(players);
+
+            // Lobby State
+            if(data.status === "waiting") {
+                scoreModal.classList.add("hidden");
+                document.getElementById("lobbyPlayerList").innerHTML = playerIds.map(id => `<li>${players[id].name}</li>`).join("");
+                if(isHost) {
+                    document.getElementById("hostControls").classList.remove("hidden");
+                    document.getElementById("startGameBtn").disabled = playerIds.length !== 4;
+                }
+            }
+
+            // Playing State
+            if(data.status === "playing") {
+                scoreModal.classList.add("hidden");
+                lobbyScreen.classList.add("hidden");
+                gameScreen.classList.remove("hidden");
+                renderGameBoard(data);
+                if(isHost) handleBotTurns(data);
+            }
+
+            // Round Over State
+            if(data.status === "round_over") {
+                showScoreboard(data);
+            }
+        });
+    }
+
+    // --- Render Game Board & Handle Turns ---
+    function renderGameBoard(data) {
+        playersGrid.innerHTML = "";
+        const players = data.players;
+        let myRole = players[myId].role;
+
+        Object.keys(players).forEach(id => {
+            const p = players[id];
+            const showRole = p.revealed || id === myId;
+            const roleDisplay = showRole ? getRoleEmoji(p.role) + " " + p.role : "❓ Hidden Chit";
+            
+            const card = document.createElement("div");
+            card.className = `player-card ${id === myId ? 'is-me' : ''}`;
+            card.innerHTML = `<div>${p.name}</div><div class="role-text">${roleDisplay}</div>`;
+            
+            // SIPAHI GUESSING LOGIC
+            if(data.turnState === "sipahi_guessing" && myRole === "Sipahi" && id !== myId && !p.revealed) {
+                card.classList.add("targetable");
+                card.onclick = () => makeGuess(id, data);
+            }
+            playersGrid.appendChild(card);
+        });
+
+        // Instructions
+        const revealRajaBtn = document.getElementById("revealRajaBtn");
+        revealRajaBtn.classList.add("hidden");
+
+        if(data.turnState === "raja_turn") {
+            if(myRole === "Raja") {
+                revealRajaBtn.classList.remove("hidden");
+                instructionText.innerText = "You are the Raja! Reveal yourself.";
+                revealRajaBtn.onclick = () => {
+                    update(roomRef, { [`players/${myId}/revealed`]: true, turnState: "sipahi_guessing" });
+                };
+            } else {
+                instructionText.innerText = "Waiting for the Raja to reveal themselves...";
+            }
+        } else if (data.turnState === "sipahi_guessing") {
+            if(myRole === "Sipahi") {
+                update(roomRef, { [`players/${myId}/revealed`]: true }); // Auto reveal Sipahi
+                instructionText.innerText = "You are the Sipahi! Click on a hidden player to catch the Chor.";
+            } else {
+                instructionText.innerText = "The Sipahi is searching for the Chor...";
+            }
+        }
+    }
+
+    // --- Sipahi Makes a Guess ---
+    async function makeGuess(targetId, data) {
+        const targetRole = data.players[targetId].role;
+        let sipahiPoints = 0, chorPoints = 0;
+        let resultMessage = "";
+
+        if(targetRole === "Chor") {
+            resultMessage = "🎉 Sipahi caught the Chor!";
+            sipahiPoints = 500;
+            chorPoints = 0;
+        } else {
+            resultMessage = "❌ Sipahi guessed wrong (Caught the Mantri)! Chor escapes.";
+            sipahiPoints = 0;
+            chorPoints = 500;
+        }
+
+        let updates = { status: "round_over", lastResult: resultMessage };
+        
+        Object.keys(data.players).forEach(id => {
+            let role = data.players[id].role;
+            let score = data.players[id].score;
+            updates[`players/${id}/revealed`] = true; // Reveal all
+            
+            if(role === "Raja") updates[`players/${id}/score`] = score + 1000;
+            if(role === "Mantri") updates[`players/${id}/score`] = score + 800; // Mantri always gets 800
+            if(role === "Sipahi") updates[`players/${id}/score`] = score + sipahiPoints;
+            if(role === "Chor") updates[`players/${id}/score`] = score + chorPoints;
+        });
+
+        await update(roomRef, updates);
+    }
+
+    // --- Bot Logic (Host Only) ---
+    function handleBotTurns(data) {
+        if(data.turnState === "raja_turn") {
+            const rajaId = Object.keys(data.players).find(id => data.players[id].role === "Raja");
+            if(data.players[rajaId].isBot && !data.players[rajaId].revealed) {
+                setTimeout(() => update(roomRef, { [`players/${rajaId}/revealed`]: true, turnState: "sipahi_guessing" }), 1500);
+            }
+        }
+
+        if(data.turnState === "sipahi_guessing") {
+            const sipahiId = Object.keys(data.players).find(id => data.players[id].role === "Sipahi");
+            if(data.players[sipahiId].isBot && !data.players[sipahiId].revealed) {
+                update(roomRef, { [`players/${sipahiId}/revealed`]: true }); // Reveal bot Sipahi
+                
+                setTimeout(() => {
+                    const hiddenIds = Object.keys(data.players).filter(id => !data.players[id].revealed && id !== sipahiId && data.players[id].role !== "Raja");
+                    const target = hiddenIds[Math.floor(Math.random() * hiddenIds.length)];
+                    makeGuess(target, data);
+                }, 3000);
+            }
+        }
+    }
+
+    // --- Scoreboard ---
+    function showScoreboard(data) {
+        scoreModal.classList.remove("hidden");
+        document.getElementById("roundResultText").innerText = data.lastResult;
+        
+        const list = document.getElementById("scoreList");
+        list.innerHTML = Object.keys(data.players)
+            .sort((a,b) => data.players[b].score - data.players[a].score)
+            .map(id => `<li><span>${data.players[id].name} (${data.players[id].role})</span> <strong>${data.players[id].score} pts</strong></li>`)
+            .join("");
+
+        if(isHost) {
+            document.getElementById("replayControls").classList.remove("hidden");
+            document.getElementById("waitingHostText").classList.add("hidden");
+        } else {
+            document.getElementById("replayControls").classList.add("hidden");
+            document.getElementById("waitingHostText").classList.remove("hidden");
+        }
+    }
+
+    // --- Helpers ---
+    function enterLobby() {
+        setupScreen.classList.add("hidden");
+        lobbyScreen.classList.remove("hidden");
+        document.getElementById("displayRoomCode").innerText = currentRoomCode;
+    }
+
+    function getRoleEmoji(role) {
+        if(role === "Raja") return "👑";
+        if(role === "Mantri") return "🧑‍⚖️";
+        if(role === "Sipahi") return "👮‍♂️";
+        if(role === "Chor") return "🦹‍♂️";
+        return "";
+    }
+</script>
+</body>
+</html>
